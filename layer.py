@@ -6,9 +6,15 @@ import torch.nn.functional as F
 from torch.nn import Parameter
 from torch.autograd import Variable
 
-
+'''
+Desc:
+    本文件完成 计算 MarginCosineProduct 的核心步骤
+Date:
+    2018-08-22 15:01
+'''
+# Cosin 实现
 class MarginCosineProduct(nn.Module):
-    r"""Implement of large margin cosine distance: :
+    r"""large margin cosine distance 的实现 :
     Args:
         in_features: size of each input sample
         out_features: size of each output sample
@@ -22,16 +28,17 @@ class MarginCosineProduct(nn.Module):
         self.out_features = out_features
         self.s = s
         self.m = m
-        self.weight = Parameter(torch.FloatTensor(out_features, in_features))
+        self.weight = Parameter(torch.Floatensor(out_features, in_features))
         nn.init.xavier_uniform(self.weight)
-
+    # 正向传播
     def forward(self, input, label):
         # --------------------------- cos(theta) & phi(theta) ---------------------------
         cosine = F.linear(F.normalize(input), F.normalize(self.weight))
         phi = cosine - self.m
-        # --------------------------- convert label to one-hot ---------------------------
+        # --------------------------- convert label to one-hot 将 label 转化为 one-hot 形式---------------------------
         one_hot = Variable(torch.zeros(cosine.size()))
-        one_hot = one_hot.cuda() if cosine.is_cuda else one_hot
+        # 修改为 cpu 版本
+        # one_hot = one_hot.cuda() if cosine.is_cuda else one_hot
         one_hot.scatter_(1, label.view(-1, 1), 1)
         # -------------torch.where(out_i = {x_i if condition_i else y_i) -------------
         output = (one_hot * phi) + ((1.0 - one_hot) * cosine)  # you can use torch.where if your torch.__version__ is 0.4
@@ -46,7 +53,7 @@ class MarginCosineProduct(nn.Module):
                + ', s=' + str(self.s) \
                + ', m=' + str(self.m) + ')'
 
-
+# angleLinear 实现
 class AngleLinear(nn.Module):
     def __init__(self, in_features, out_features, m=4):
         super(AngleLinear, self).__init__()
@@ -83,10 +90,12 @@ class AngleLinear(nn.Module):
         theta = Variable(cos_theta.data.acos())
         k = (self.m * theta / 3.14159265).floor()
         phi_theta = ((-1.0) ** k) * cos_m_theta - 2 * k
+        # https://pytorch.org/docs/stable/torch.html#torch.norm 
         NormOfFeature = torch.norm(input, 2, 1)
 
         # --------------------------- convert label to one-hot ---------------------------
         one_hot = Variable(torch.zeros(cos_theta.size()))
+        # 如果支持 cuda，则改成 gpu 版本运行
         one_hot = one_hot.cuda() if cos_theta.is_cuda else one_hot
         one_hot.scatter_(1, label.view(-1, 1), 1)
 

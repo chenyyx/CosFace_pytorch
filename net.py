@@ -2,6 +2,14 @@ import torch
 import torch.nn as nn
 
 
+'''
+Desc:
+    本文件完成 net 模型的构建
+Date:
+    2018-08-22 15:40
+'''
+
+
 # ---------------------------------------------- new version ----------------------------------------------
 # Simpler and more scalable
 # You can change the network to sphere64 by changing the variables sphere.layers
@@ -71,12 +79,15 @@ class sphere(nn.Module):
             torch.save(self.state_dict(), f)
 
 # ---------------------------------------------- old version ----------------------------------------------
+# 调用 此模型
 class sphere20(nn.Module):
     def __init__(self):
         super(sphere20, self).__init__()
 
         # input = B*3*112*96
         # First layer of each block have bias (lr_mult: 2 && decay_mult: 0)
+        # 卷积—1
+        # PReLU() 类似于 LReLU（Leaky ReLU），只不过 a_i 是可以学习的，BP 更新 a_i 时是带动量的更新方式（momentum）
         self.conv1_1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=2, padding=1)  # =>B*64*56*48
         self.relu1_1 = nn.PReLU(64)
         self.conv1_2 = nn.Conv2d(64, 64, 3, 1, 1, bias=False)
@@ -85,6 +96,7 @@ class sphere20(nn.Module):
         self.relu1_3 = nn.PReLU(64)
 
         # First layer of each block have bias (lr_mult: 2 && decay_mult: 0)
+        # 卷积-2
         self.conv2_1 = nn.Conv2d(64, 128, 3, 2, 1)  # =>B*128*28*24
         self.relu2_1 = nn.PReLU(128)
         self.conv2_2 = nn.Conv2d(128, 128, 3, 1, 1, bias=False)
@@ -133,6 +145,7 @@ class sphere20(nn.Module):
         # Weight initialization
         # print('Initialization Network Parameter...')
         for m in self.modules():
+            # 如果层是卷积层或 Linear 层
             if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
                 if m.bias is not None:
                     nn.init.xavier_uniform(m.weight)

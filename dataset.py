@@ -1,10 +1,19 @@
 import torch.utils.data as data
 from PIL import Image, ImageFile
 import os
-
+# 添加本行，否则出现 IOError: image file is truncated
 ImageFile.LOAD_TRUNCATED_IAMGES = True
 
+'''
+Desc:
+    此文件完成 加载数据 过程。
+Date：
+    2018-08-22 14:56
+Author：
+    chenyyx
+'''
 
+# 加载指定 path 下的数据
 def PIL_loader(path):
     try:
         img = Image.open(path).convert('RGB')
@@ -13,7 +22,7 @@ def PIL_loader(path):
     else:
         return img
 
-
+# 加载 fileList 并返回 imgList
 def default_reader(fileList):
     imgList = []
     with open(fileList, 'r') as file:
@@ -25,9 +34,11 @@ def default_reader(fileList):
 
 class ImageList(data.Dataset):
     '''
-     Args:
+    Desc：
+        重写 ImageList 中的 init ,getitem, len 方法
+    Args:
         root (string): Root directory path.
-        fileList (string): Image list file path
+        fileList (string): Image list file path 
         transform (callable, optional): A function/transform that  takes in an PIL image
             and returns a transformed version. E.g, ``transforms.RandomCrop``
     '''
